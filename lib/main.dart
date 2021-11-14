@@ -1,4 +1,4 @@
-import 'package:control_visitas/pantallaInicio.dart';
+import 'package:control_visitas/InicioScreen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
+      debugShowCheckedModeBanner: false,
       home: const MyHomePage(title: 'Colono'),
     );
   }
