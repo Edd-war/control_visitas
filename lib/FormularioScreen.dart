@@ -1,3 +1,5 @@
+import 'package:control_visitas/models/visitas_dao.dart';
+import 'package:control_visitas/providers/firebase_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +12,42 @@ class FormularioScreen extends StatefulWidget {
 
 class _FormularioScreenState extends State<FormularioScreen> {
   DateTime? _dateEntrega;
+  String? _verFecha;
+  late FirebaseProvider _provider;
+  late VisitaDAO _visitaDAO;
+
+  //controladores
+  TextEditingController controller_nombreTitular = TextEditingController();
+  TextEditingController controller_numeroVisitantes = TextEditingController();
+  TextEditingController controller_calle = TextEditingController();
+  TextEditingController controller_numero = TextEditingController();
+  TextEditingController controller_formaLlegada = TextEditingController();
+
+  insert() {
+    try {
+      _visitaDAO = VisitaDAO(
+          visitanteTitular: controller_nombreTitular.text,
+          numeroPersonas: int.parse(controller_numeroVisitantes.text),
+          calle: controller_calle.text,
+          numero: controller_numero.text,
+          fecha: _verFecha,
+          formaLlegada: controller_formaLlegada.text,
+          status: 0);
+      _provider.saveVisita(_visitaDAO);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Datos guardados correctamente')));
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error al guardar los datos')));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _provider = FirebaseProvider();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +62,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
           child: ListView(
             children: [
               TextFormField(
+                controller: controller_nombreTitular,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                     filled: true,
@@ -41,6 +80,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
                 height: 20.0,
               ),
               TextFormField(
+                controller: controller_numeroVisitantes,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                     filled: true,
@@ -58,6 +98,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
                 height: 20.0,
               ),
               TextFormField(
+                controller: controller_calle,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                     filled: true,
@@ -75,6 +116,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
                 height: 20.0,
               ),
               TextFormField(
+                controller: controller_numero,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                     filled: true,
@@ -92,6 +134,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
                 height: 20.0,
               ),
               TextFormField(
+                controller: controller_formaLlegada,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                     filled: true,
@@ -118,6 +161,8 @@ class _FormularioScreenState extends State<FormularioScreen> {
                           firstDate: DateTime(2021),
                           lastDate: DateTime(2025))
                       .then((date) {
+                    _verFecha = '${date!.year}/${date.month}/${date.day}';
+                    //print(_verFecha);
                     _dateEntrega = date;
                     setState(() {});
                   });
@@ -132,7 +177,9 @@ class _FormularioScreenState extends State<FormularioScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text('Fecha de la Visita'),
+                      Text(
+                        _verFecha == null ? 'Seleccionar fecha' : _verFecha!,
+                      ),
                       Icon(Icons.arrow_drop_down,
                           color:
                               Theme.of(context).brightness == Brightness.light
@@ -149,7 +196,17 @@ class _FormularioScreenState extends State<FormularioScreen> {
                 style: ElevatedButton.styleFrom(
                   primary: Colors.blueGrey.shade400,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  insert();
+                  controller_nombreTitular.clear();
+                  controller_numeroVisitantes.clear();
+                  controller_calle.clear();
+                  controller_numero.clear();
+                  controller_formaLlegada.clear();
+                  setState(() {
+                    _verFecha = 'Seleccionar fecha';
+                  });
+                },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
