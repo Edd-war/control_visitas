@@ -14,4 +14,8 @@ class FirebaseProvider {
   Future<void> saveVisita(VisitaDAO objVisita) {
     return _visitasCollection.add(objVisita.toMap());
   }
+
+  Stream<QuerySnapshot> getAllProducts() {
+    return _visitasCollection.snapshots();
+  }
 }

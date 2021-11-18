@@ -1,7 +1,16 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui';
+
 import 'package:control_visitas/models/visitas_dao.dart';
 import 'package:control_visitas/providers/firebase_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share/share.dart';
 
 class FormularioScreen extends StatefulWidget {
   const FormularioScreen({Key? key}) : super(key: key);
@@ -15,25 +24,50 @@ class _FormularioScreenState extends State<FormularioScreen> {
   String? _verFecha;
   late FirebaseProvider _provider;
   late VisitaDAO _visitaDAO;
-
+  final key = GlobalKey();
+  File? file;
   //controladores
   TextEditingController controller_nombreTitular = TextEditingController();
   TextEditingController controller_numeroVisitantes = TextEditingController();
   TextEditingController controller_calle = TextEditingController();
   TextEditingController controller_numero = TextEditingController();
   TextEditingController controller_formaLlegada = TextEditingController();
+  QrImage? _qrImage;
+
+  showQR() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text('Código QR'),
+              content: Center(
+                child: _qrImage = QrImage(
+                  data: _visitaDAO.toMap().toString(),
+                  size: 200,
+                  backgroundColor: Colors.white,
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Guardar'),
+                  onPressed: () {},
+                ),
+                TextButton(
+                  child: const Text('Compartir'),
+                  onPressed: () {},
+                ),
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ));
+  }
 
   insert() {
     try {
-      _visitaDAO = VisitaDAO(
-          visitanteTitular: controller_nombreTitular.text,
-          numeroPersonas: int.parse(controller_numeroVisitantes.text),
-          calle: controller_calle.text,
-          numero: controller_numero.text,
-          fecha: _verFecha,
-          formaLlegada: controller_formaLlegada.text,
-          status: 0);
-      _provider.saveVisita(_visitaDAO);
+      _provider.saveVisita(_visitaDAO); //guardamos en DB
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Datos guardados correctamente')));
     } catch (e) {
@@ -197,7 +231,18 @@ class _FormularioScreenState extends State<FormularioScreen> {
                   primary: Colors.blueGrey.shade400,
                 ),
                 onPressed: () {
-                  insert();
+                  //falta validar que no esten vacios
+                  _visitaDAO = VisitaDAO(
+                      visitanteTitular: controller_nombreTitular.text,
+                      numeroPersonas:
+                          int.parse(controller_numeroVisitantes.text),
+                      calle: controller_calle.text,
+                      numero: controller_numero.text,
+                      fecha: _verFecha,
+                      formaLlegada: controller_formaLlegada.text,
+                      status: 0);
+                  //insert();
+                  showQR();
                   controller_nombreTitular.clear();
                   controller_numeroVisitantes.clear();
                   controller_calle.clear();
