@@ -1,4 +1,4 @@
-import 'package:control_visitas/FormularioScreen.dart';
+import 'package:control_visitas/formulario_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -20,31 +20,29 @@ class _MyHomePageState extends State<MyHomePage> {
       alignment: Alignment.bottomCenter,
       children: [
         Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
                 image: DecorationImage(
                     image: AssetImage('assets/Fondo.jpeg'), fit: BoxFit.fill))),
-        Container(
-          child: Card(
-            margin: EdgeInsets.only(left: 15, right: 15, bottom: 550),
-            color: Colors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Bienvenido Colono !!",
-                style: TextStyle(
-                    fontSize: 35,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
+        const Card(
+          margin: EdgeInsets.only(left: 15, right: 15, bottom: 550),
+          color: Colors.transparent,
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              "Bienvenido Colono !!",
+              style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
           ),
         ),
         Positioned(
-          child: cargando == true ? CircularProgressIndicator() : Container(),
+          child: cargando == true ? const CircularProgressIndicator() : Container(),
           top: 350,
         ),
         Card(
-          margin: EdgeInsets.only(left: 15, right: 15, bottom: 300),
+          margin: const EdgeInsets.only(left: 15, right: 15, bottom: 300),
           color: Colors.transparent,
           child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -53,16 +51,16 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 cargando = true;
                 setState(() {});
-                Future.delayed(Duration(seconds: 5),(){
+                Future.delayed(const Duration(seconds: 5),(){
                   Navigator.push(
                     context, 
-                    MaterialPageRoute(builder: (context) => FormularioScreen())
+                    MaterialPageRoute(builder: (context) => const FormularioScreen())
                     );
                 });
               },
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+                  children: const [
                     Icon(Icons.login), 
                     Text("Registrar Nueva Visita"),
                   ]
