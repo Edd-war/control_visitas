@@ -8,7 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+// import 'package:gallery_saver/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share/share.dart';
 
@@ -20,6 +22,8 @@ class FormularioScreen extends StatefulWidget {
 }
 
 class _FormularioScreenState extends State<FormularioScreen> {
+  // late Permission permisosStorage;
+  // PermissionStatus estadoPermisos = PermissionStatus.denied;
   DateTime? _dateEntrega;
   String? _verFecha;
   late FirebaseProvider _provider;
@@ -32,6 +36,37 @@ class _FormularioScreenState extends State<FormularioScreen> {
   TextEditingController controller_calle = TextEditingController();
   TextEditingController controller_numero = TextEditingController();
   TextEditingController controller_formaLlegada = TextEditingController();
+  QrImage? _qrImage;
+
+  // void _listenForPermissions() async{
+  //   final status = await Permission.storage.status;
+  //   setState(() {
+  //     estadoPermisos=status;
+  //   });
+  //   switch(status){
+  //     case PermissionStatus.denied:
+  //       requestForPermission();
+  //       break;
+  //     case PermissionStatus.granted:
+  //       break;
+  //     case PermissionStatus.limited:
+  //       Navigator.pop(context);
+  //       break;
+  //     case PermissionStatus.restricted:
+  //       Navigator.pop(context);
+  //       break;
+  //     case PermissionStatus.permanentlyDenied:
+  //       Navigator.pop(context);
+  //       break;
+  //   }
+  // }
+
+  // Future<void> requestForPermission() async{
+  //   final status = await Permission.storage.request();
+  //   setState(() {
+  //     estadoPermisos = status;
+  //   });
+  // }
 
   showQR() {
     showDialog(
@@ -43,12 +78,12 @@ class _FormularioScreenState extends State<FormularioScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Scan this QR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+                const Text('Comparte este código QR a tu visita', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
                 const SizedBox(height: 15.0),
                 SizedBox(
                   width: 200.0,
                   height: 200.0,
-                  child: QrImage(
+                  child: _qrImage = QrImage(
                     data: _visitaDAO.toMap().toString(),
                     size: 200,
                     backgroundColor: Colors.white,
@@ -57,11 +92,25 @@ class _FormularioScreenState extends State<FormularioScreen> {
                 ),
                 TextButton(
                   child: const Text('Guardar'),
-                  onPressed: () {},
+                  onPressed: () async {
+                    // String path = await generarQR(_visitaDAO.toMap().toString());
+                    // final QRguardado = await GallerySaver.saveImage(path);
+                    // Scaffold.of(context).showSnackBar(SnackBar(
+                    //   content: QRguardado! ? const Text('Image saved to Gallery') : const Text('Error saving image'),
+                    // ));
+                  },
                 ),
                 TextButton(
                   child: const Text('Compartir'),
-                  onPressed: () {},
+                  onPressed: () async {
+                    String path = await generarQR(_visitaDAO.toMap().toString());
+                    await Share.shareFiles(
+                        [path],
+                        mimeTypes: ["image/png"],
+                        subject: 'Mi visita en QR',
+                        text: 'Muéstrame en la entrada con el vigilante'
+                    );
+                  },
                 ),
                 TextButton(
                   child: const Text('Aceptar'),
@@ -76,6 +125,48 @@ class _FormularioScreenState extends State<FormularioScreen> {
     );
   }
 
+  Future<String> generarQR(String qr) async{
+    String path = '';
+    final validacionQR = QrValidator.validate(
+        data: qr,
+        version: QrVersions.auto,
+        errorCorrectionLevel: QrErrorCorrectLevel.L
+    );
+    if(validacionQR.status == QrValidationStatus.valid){
+      final qrCode = validacionQR.qrCode;
+      // final pintarQR = QrPainter.withQr(
+      //   qr: qrCode!,
+      //   color: Colors.black,
+      //   gapless: true,
+      //   embeddedImageStyle: null,
+      //   embeddedImage: null
+      // );
+      Directory tempDir = await getTemporaryDirectory();
+      String tempPath = tempDir.path;
+      final timeStamp = DateTime.now().millisecondsSinceEpoch.toString();
+      path = '$tempPath/$timeStamp.png';
+
+      final picData = await QrPainter.withQr(
+          qr: qrCode!,
+          color: Colors.black,
+          gapless: true,
+          embeddedImageStyle: null,
+          embeddedImage: null
+      ).toImageData(1080, format: ImageByteFormat.png);
+      await digitalizarQR(picData!, path);
+      return path;
+    }else{
+      return validacionQR.error.toString();
+      // print(validacionQR.error);
+    }
+
+  }
+
+  Future<void> digitalizarQR(ByteData data, String path) async{
+    final buffer = data.buffer;
+    await File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+  }
+
   insert() {
     try {
       _provider.saveVisita(_visitaDAO); //guardamos en DB
@@ -88,9 +179,22 @@ class _FormularioScreenState extends State<FormularioScreen> {
     }
   }
 
+  // void requestPermission() async{
+  //   var status = await Permission.storage.status;
+  //   if(!status.isGranted){
+  //     await Permission.storage.request();
+  //   }
+  //   var status1 = await Permission.manageExternalStorage.request();
+  //   if(!status1.isGranted){
+  //     await Permission.manageExternalStorage.request();
+  //   }
+  // }
+
   @override
   void initState() {
     super.initState();
+    // _listenForPermissions();
+    // requestPermission();
     _provider = FirebaseProvider();
   }
 
@@ -251,7 +355,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
                     fecha: _verFecha,
                     formaLlegada: controller_formaLlegada.text,
                     status: 0);
-                //insert();
+                insert();
                 showQR();
                 controller_nombreTitular.clear();
                 controller_numeroVisitantes.clear();
