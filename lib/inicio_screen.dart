@@ -1,4 +1,5 @@
 import 'package:control_visitas/formulario_screen.dart';
+import 'package:control_visitas/Scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
