@@ -66,6 +66,32 @@ class _MyHomePageState extends State<MyHomePage> {
                   ]
               )
           ),
+        ),
+        Card(
+          margin: EdgeInsets.only(left: 15, right: 15, bottom: 250),
+          color: Colors.transparent,
+          child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+              primary: Colors.blueGrey[400], 
+              elevation: 350.0),
+              onPressed: () {
+                cargando = true;
+                setState(() {});
+                Future.delayed(Duration(seconds: 5),(){
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (context) => Scanner())
+                    );
+                });
+              },
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Icon(Icons.login), 
+                    Text("Escanear Código QR"),
+                  ]
+              )
+          ),
         )
       ],
     );
