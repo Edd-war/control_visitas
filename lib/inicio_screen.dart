@@ -1,5 +1,5 @@
 import 'package:control_visitas/formulario_screen.dart';
-import 'package:control_visitas/Scanner.dart';
+import 'package:control_visitas/scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         Card(
-          margin: EdgeInsets.only(left: 15, right: 15, bottom: 250),
+          margin: const EdgeInsets.only(left: 15, right: 15, bottom: 250),
           color: Colors.transparent,
           child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -78,16 +78,16 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 cargando = true;
                 setState(() {});
-                Future.delayed(Duration(seconds: 5),(){
+                Future.delayed(const Duration(seconds: 2),(){
                   Navigator.push(
                     context, 
-                    MaterialPageRoute(builder: (context) => Scanner())
+                    MaterialPageRoute(builder: (context) => const Scanner())
                     );
                 });
               },
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+                  children: const [
                     Icon(Icons.login), 
                     Text("Escanear Código QR"),
                   ]

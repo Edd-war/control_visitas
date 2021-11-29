@@ -4,15 +4,13 @@ import 'dart:ui';
 
 import 'package:control_visitas/models/visitas_dao.dart';
 import 'package:control_visitas/providers/firebase_provider.dart';
+import 'package:control_visitas/qr_results.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 // import 'package:gallery_saver/gallery_saver.dart';
-import 'package:path_provider/path_provider.dart';
 // import 'package:permission_handler/permission_handler.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share/share.dart';
 
 class FormularioScreen extends StatefulWidget {
   const FormularioScreen({Key? key}) : super(key: key);
@@ -36,7 +34,6 @@ class _FormularioScreenState extends State<FormularioScreen> {
   TextEditingController controller_calle = TextEditingController();
   TextEditingController controller_numero = TextEditingController();
   TextEditingController controller_formaLlegada = TextEditingController();
-  QrImage? _qrImage;
 
   // void _listenForPermissions() async{
   //   final status = await Permission.storage.status;
@@ -71,100 +68,8 @@ class _FormularioScreenState extends State<FormularioScreen> {
   showQR() {
     showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-          title: const Text('Código QR'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Comparte este código QR a tu visita', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
-                const SizedBox(height: 15.0),
-                SizedBox(
-                  width: 200.0,
-                  height: 200.0,
-                  child: _qrImage = QrImage(
-                    data: _visitaDAO.toMap().toString(),
-                    size: 200,
-                    backgroundColor: Colors.white,
-                    errorStateBuilder: (context, error)=>Text(error.toString())
-                  ),
-                ),
-                TextButton(
-                  child: const Text('Guardar'),
-                  onPressed: () async {
-                    // String path = await generarQR(_visitaDAO.toMap().toString());
-                    // final QRguardado = await GallerySaver.saveImage(path);
-                    // Scaffold.of(context).showSnackBar(SnackBar(
-                    //   content: QRguardado! ? const Text('Image saved to Gallery') : const Text('Error saving image'),
-                    // ));
-                  },
-                ),
-                TextButton(
-                  child: const Text('Compartir'),
-                  onPressed: () async {
-                    String path = await generarQR(_visitaDAO.toMap().toString());
-                    await Share.shareFiles(
-                        [path],
-                        mimeTypes: ["image/png"],
-                        subject: 'Mi visita en QR',
-                        text: 'Muéstrame en la entrada con el vigilante'
-                    );
-                  },
-                ),
-                TextButton(
-                  child: const Text('Aceptar'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            )
-          )
-        )
+        builder: (context) => QRResults(visitaDAO: _visitaDAO, intencion: "generar",)
     );
-  }
-
-  Future<String> generarQR(String qr) async{
-    String path = '';
-    final validacionQR = QrValidator.validate(
-        data: qr,
-        version: QrVersions.auto,
-        errorCorrectionLevel: QrErrorCorrectLevel.L
-    );
-    if(validacionQR.status == QrValidationStatus.valid){
-      final qrCode = validacionQR.qrCode;
-      // final pintarQR = QrPainter.withQr(
-      //   qr: qrCode!,
-      //   color: Colors.black,
-      //   gapless: true,
-      //   embeddedImageStyle: null,
-      //   embeddedImage: null
-      // );
-      Directory tempDir = await getTemporaryDirectory();
-      String tempPath = tempDir.path;
-      final timeStamp = DateTime.now().millisecondsSinceEpoch.toString();
-      path = '$tempPath/$timeStamp.png';
-
-      final picData = await QrPainter.withQr(
-          qr: qrCode!,
-          color: Colors.black,
-          gapless: true,
-          embeddedImageStyle: null,
-          embeddedImage: null
-      ).toImageData(1080, format: ImageByteFormat.png);
-      await digitalizarQR(picData!, path);
-      return path;
-    }else{
-      return validacionQR.error.toString();
-      // print(validacionQR.error);
-    }
-
-  }
-
-  Future<void> digitalizarQR(ByteData data, String path) async{
-    final buffer = data.buffer;
-    await File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
   insert() {
@@ -173,7 +78,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Datos guardados correctamente')));
     } catch (e) {
-      print(e);
+      // print(e);
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Error al guardar los datos')));
     }
